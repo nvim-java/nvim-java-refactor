@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.0 (2024-05-02)
+
+
+### Features
+
+* init commit ([5ceae25](https://github.com/nvim-java/nvim-java-refactor/commit/5ceae254705c281b1fcdf4093190e821eed74a9e))
+
+
+### Bug Fixes
+
+* **ci:** missing token for stylua ([8aed200](https://github.com/nvim-java/nvim-java-refactor/commit/8aed2008d2c2cecfe62c2bd18d04634aa3230813))
+
 ## [1.2.0](https://github.com/nvim-java/nvim-java/compare/v1.1.0...v1.2.0) (2024-03-23)
 
 

@@ -20,7 +20,7 @@ local M = {
 			local start_char = rename.offset - vim.fn.line2byte(line) + 1
 			local end_char = start_char + rename.length
 
-			local name = ui.input({ prompt = 'name' })
+			local name = ui.input('Variable Name')
 
 			if not name then
 				return

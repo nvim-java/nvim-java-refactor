@@ -1,5 +1,6 @@
 local class = require('java-core.utils.class')
 local notify = require('java-core.utils.notify')
+local lsp_refactor_commands = require('java-refactor.lsp-refactor-commands')
 
 local JdtlsClient = require('java-core.ls.clients.jdtls-client')
 
@@ -30,7 +31,6 @@ function RefactorCommands:extract_variable()
 		buffer
 	)
 
-	vim.print(vim.lsp.handlers)
 	vim.lsp.util.apply_workspace_edit(edit.edit, 'utf-8')
 
 	RefactorCommands.run_lsp_client_command(
@@ -40,14 +40,20 @@ function RefactorCommands:extract_variable()
 end
 
 function RefactorCommands.run_lsp_client_command(command_name, arguments)
-	local command = vim.lsp.commands[command_name]
+	local command
+
+	if lsp_refactor_commands[command_name] then
+		command = lsp_refactor_commands[command_name]
+	else
+		command = vim.lsp.commands[command_name]
+	end
 
 	if not command then
 		notify.error('Command "' .. command_name .. '" is not supported')
 		return
 	end
 
-	vim.lsp.commands[command_name](arguments)
+	command(arguments)
 end
 
 return RefactorCommands

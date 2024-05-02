@@ -1,3 +1,5 @@
+local ui = require('java.utils.ui')
+
 local M = {
 	---@class java-refactor.RenameAction
 	---@field length number

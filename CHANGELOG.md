@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/nvim-java/nvim-java-refactor/compare/v1.0.0...v1.1.0) (2024-07-10)
+
+
+### Features
+
+* add support for more refactoring commands ([c281695](https://github.com/nvim-java/nvim-java-refactor/commit/c281695d2daa99f34f5d4db74d90dc3a4f2eb991))
+
 ## 1.0.0 (2024-05-02)
 
 

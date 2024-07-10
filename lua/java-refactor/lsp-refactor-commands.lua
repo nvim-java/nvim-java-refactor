@@ -1,7 +1,10 @@
-local ui = require('java.utils.ui')
+-- local ui = require('java.utils.ui')
 
 local M = {
+
 	commands = {
+		-- ['java.action.applyRefactoringCommand'] = function() end,
+
 		---@class java-refactor.RenameAction
 		---@field length number
 		---@field offset number
@@ -12,6 +15,7 @@ local M = {
 		['java.action.rename'] = function(arguments)
 			for _, rename in ipairs(arguments) do
 				local buffer = vim.uri_to_bufnr(rename.uri)
+
 				local line
 
 				vim.api.nvim_buf_call(buffer, function()
@@ -19,22 +23,13 @@ local M = {
 				end)
 
 				local start_char = rename.offset - vim.fn.line2byte(line) + 1
-				local end_char = start_char + rename.length
 
-				local name = ui.input('Variable Name')
+				vim.api.nvim_win_set_cursor(0, { line, start_char })
 
-				if not name then
-					return
-				end
-
-				vim.api.nvim_buf_set_text(
-					buffer,
-					line - 1,
-					start_char,
-					line - 1,
-					end_char,
-					{ name }
-				)
+				vim.lsp.buf.rename(nil, {
+					name = 'jdtls',
+					bufnr = buffer,
+				})
 			end
 		end,
 	},
@@ -47,7 +42,6 @@ id = vim.api.nvim_create_autocmd('LspAttach', {
 		local client = vim.lsp.get_client_by_id(args.data.client_id)
 		if client and client.name == 'jdtls' then
 			for name, command in pairs(M.commands) do
-				vim.print(name, command)
 				vim.lsp.commands[name] = command
 			end
 

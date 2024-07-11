@@ -1,10 +1,10 @@
--- local ui = require('java.utils.ui')
+local runner = require('async.runner')
+local get_error_handler = require('java-refactor.utils.error_handler')
+local RefactorCommands = require('java-refactor.refactor-commands')
 
 local M = {
 
 	commands = {
-		-- ['java.action.applyRefactoringCommand'] = function() end,
-
 		---@class java-refactor.RenameAction
 		---@field length number
 		---@field offset number
@@ -32,6 +32,30 @@ local M = {
 				})
 			end
 		end,
+
+		---@class java-refactor.ApplyRefactoringCommandInfo
+		---@field bufnr number
+		---@field client_id number
+		---@field method string
+		---@field params lsp.CodeActionContext
+
+		---comment
+		---@param command lsp.Command
+		---@param command_info java-refactor.ApplyRefactoringCommandInfo
+		['java.action.applyRefactoringCommand'] = function(command, command_info)
+			runner(function()
+					local refactor_type = command.arguments[1] --[[@as jdtls.CodeActionCommand]]
+					local context = command_info.params
+
+					local client = vim.lsp.get_client_by_id(command_info.client_id)
+
+					---@type java-refactor.RefactorCommands
+					local refactor_commands = RefactorCommands(client)
+					refactor_commands:refactor(refactor_type, context)
+				end)
+				.catch(get_error_handler('Failed to run refactoring command'))
+				.run()
+		end,
 	},
 }
 
@@ -49,3 +73,8 @@ id = vim.api.nvim_create_autocmd('LspAttach', {
 		end
 	end,
 })
+
+---@class java-refactor.RefactorContext
+---@field context { diagnostics: any[], triggerKind: number }
+---@field range nvim.Range
+---@field textDocument { uri: string }

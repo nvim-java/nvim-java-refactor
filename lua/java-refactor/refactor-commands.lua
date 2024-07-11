@@ -2,6 +2,22 @@ local class = require('java-core.utils.class')
 local notify = require('java-core.utils.notify')
 local JdtlsClient = require('java-core.ls.clients.jdtls-client')
 
+local available_commands = {
+	-- 'assignField',
+	-- 'assignVariable',
+	-- 'changeSignature',
+	-- 'convertAnonymousClassToNestedCommand',
+	-- 'convertVariableToField',
+	'extractConstant',
+	'extractField',
+	-- 'extractInterface',
+	'extractMethod',
+	'extractVariable',
+	'extractVariableAllOccurrence',
+	-- 'introduceParameter',
+	-- 'invertVariable',
+}
+
 ---@class java-refactor.RefactorCommands
 ---@field jdtls_client java-core.JdtlsClient
 local RefactorCommands = class()
@@ -15,6 +31,13 @@ end
 ---@param refactor_type jdtls.CodeActionCommand
 ---@param context lsp.CodeActionContext
 function RefactorCommands:refactor(refactor_type, context)
+	if not vim.tbl_contains(available_commands, refactor_type) then
+		notify.error(
+			string.format('Refactoring command "%s" is not supported', refactor_type)
+		)
+		return
+	end
+
 	if not context then
 		context = vim.lsp.util.make_range_params(0)
 		context.context = {}

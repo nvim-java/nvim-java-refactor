@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/nvim-java/nvim-java-refactor/compare/v1.1.0...v1.2.0) (2024-07-11)
+
+
+### Features
+
+* add apply refactoring command handler ([f1ae757](https://github.com/nvim-java/nvim-java-refactor/commit/f1ae757c648253cf88b2f06c3bff6042aacad6d4))
+* add message when unsupported command is ran ([091bdb3](https://github.com/nvim-java/nvim-java-refactor/commit/091bdb348fe0c7b9d1fb69133ac08a9ef49451ea))
+
 ## [1.1.0](https://github.com/nvim-java/nvim-java-refactor/compare/v1.0.0...v1.1.0) (2024-07-10)
 
 

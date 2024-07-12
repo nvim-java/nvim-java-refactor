@@ -1,6 +1,8 @@
 local class = require('java-core.utils.class')
 local notify = require('java-core.utils.notify')
 local JdtlsClient = require('java-core.ls.clients.jdtls-client')
+local List = require('java-core.utils.list')
+local ui = require('java.utils.ui')
 
 local available_commands = {
 	-- 'assignField',
@@ -51,21 +53,37 @@ function RefactorCommands:refactor(refactor_type, context)
 
 	local buffer = vim.api.nvim_get_current_buf()
 
-	local selection = {}
+	local selections = List:new()
 
 	if
 		context.range.start.character == context.range['end'].character
 		and context.range.start.line == context.range['end'].line
 	then
-		selection =
-			self.jdtls_client:java_infer_selection(refactor_type, context, buffer)
+		local selection =
+			self.jdtls_client:java_infer_selection(refactor_type, context, buffer)[1]
+
+		if refactor_type == 'extractField' then
+			if selection.params and vim.islist(selection.params) then
+				local initialize_in =
+					ui.select('Initialize the field in', selection.params)
+
+				if not initialize_in then
+					return
+				end
+
+				selections:push(initialize_in)
+			end
+		end
+
+		selections:push(selection)
+		vim.print(selections)
 	end
 
 	local edit = self.jdtls_client:java_get_refactor_edit(
 		refactor_type,
 		context,
 		formatting_options,
-		selection,
+		selections,
 		buffer
 	)
 

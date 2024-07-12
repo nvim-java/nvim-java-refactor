@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/nvim-java/nvim-java-refactor/compare/v1.2.0...v1.3.0) (2024-07-12)
+
+
+### Features
+
+* add ui selection for extractField command ([4b1ffbb](https://github.com/nvim-java/nvim-java-refactor/commit/4b1ffbb4a1591f989dce3f5bbcb3af01b169d0d4))
+
 ## [1.2.0](https://github.com/nvim-java/nvim-java-refactor/compare/v1.1.0...v1.2.0) (2024-07-11)
 
 

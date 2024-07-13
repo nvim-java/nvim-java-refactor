@@ -33,25 +33,25 @@ local M = {
 			end
 		end,
 
-		---@class java-refactor.ApplyRefactoringCommandInfo
-		---@field bufnr number
-		---@field client_id number
-		---@field method string
-		---@field params lsp.CodeActionContext
-
 		---comment
 		---@param command lsp.Command
-		---@param command_info java-refactor.ApplyRefactoringCommandInfo
-		['java.action.applyRefactoringCommand'] = function(command, command_info)
+		---@param params java-refactor.ApplyRefactoringCommandParams
+		---@param command_info lsp.LSPAny
+		['java.action.applyRefactoringCommand'] = function(
+			command,
+			params,
+			command_info
+		)
 			runner(function()
+					vim.print('params', params)
+					vim.print('command_info', command_info)
 					local refactor_type = command.arguments[1] --[[@as jdtls.CodeActionCommand]]
-					local context = command_info.params
 
-					local client = vim.lsp.get_client_by_id(command_info.client_id)
+					local client = vim.lsp.get_client_by_id(params.client_id)
 
 					---@type java-refactor.RefactorCommands
 					local refactor_commands = RefactorCommands(client)
-					refactor_commands:refactor(refactor_type, context)
+					refactor_commands:refactor(refactor_type, params.params, command_info)
 				end)
 				.catch(get_error_handler('Failed to run refactoring command'))
 				.run()
@@ -74,7 +74,64 @@ id = vim.api.nvim_create_autocmd('LspAttach', {
 	end,
 })
 
----@class java-refactor.RefactorContext
----@field context { diagnostics: any[], triggerKind: number }
----@field range nvim.Range
----@field textDocument { uri: string }
+---@class java-refactor.ApplyRefactoringCommandParams
+---@field bufnr number
+---@field client_id number
+---@field method string
+---@field params lsp.CodeActionParams
+---@field version number
+
+--[[
+{
+		arguments = {
+			'extractField',
+			{
+				context = {
+					diagnostics = {},
+					triggerKind = 1,
+				},
+				range = {
+					['end'] = {
+						character = 9,
+						line = 9,
+					},
+					start = {
+						character = 9,
+						line = 9,
+					},
+				},
+				textDocument = {
+					uri = 'file:///home/s1n7ax/Workspace/demo/src/main/java/com/example/demo/DemoApplication.java',
+				},
+			},
+		},
+		command = 'java.action.applyRefactoringCommand',
+		title = 'Extract to field',
+	})
+
+{
+  bufnr = 3,
+  client_id = 2,
+  method = "textDocument/codeAction",
+  params = {
+    context = {
+      diagnostics = {},
+      triggerKind = 1
+    },
+    range = {
+      ["end"] = {
+        character = 9,
+        line = 9
+      },
+      start = {
+        character = 9,
+        line = 9
+      }
+    },
+    textDocument = {
+      uri = "file:///home/s1n7ax/Workspace/demo/src/main/java/com/example/demo/DemoApplication.java"
+    }
+  },
+  version = 4
+}
+]]

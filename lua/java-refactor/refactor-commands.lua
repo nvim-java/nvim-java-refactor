@@ -4,20 +4,29 @@ local JdtlsClient = require('java-core.ls.clients.jdtls-client')
 local List = require('java-core.utils.list')
 local ui = require('java.utils.ui')
 
+local selections_needed_refactoring_commands = {
+	'convertVariableToField',
+	'extractConstant',
+	'extractField',
+	'extractMethod',
+	'extractVariable',
+	'extractVariableAllOccurrence',
+}
+
 local available_commands = {
-	-- 'assignField',
-	-- 'assignVariable',
+	'assignField',
+	'assignVariable',
 	-- 'changeSignature',
-	-- 'convertAnonymousClassToNestedCommand',
-	-- 'convertVariableToField',
+	'convertAnonymousClassToNestedCommand',
+	'convertVariableToField',
 	'extractConstant',
 	'extractField',
 	-- 'extractInterface',
 	'extractMethod',
 	'extractVariable',
 	'extractVariableAllOccurrence',
-	-- 'introduceParameter',
-	-- 'invertVariable',
+	'introduceParameter',
+	'invertVariable',
 }
 
 ---@class java-refactor.RefactorCommands
@@ -31,8 +40,8 @@ end
 
 ---Run refactor command
 ---@param refactor_type jdtls.CodeActionCommand
----@param context lsp.CodeActionContext
-function RefactorCommands:refactor(refactor_type, context)
+---@param params lsp.CodeActionParams
+function RefactorCommands:refactor(refactor_type, params)
 	if not vim.tbl_contains(available_commands, refactor_type) then
 		notify.error(
 			string.format('Refactoring command "%s" is not supported', refactor_type)
@@ -40,51 +49,20 @@ function RefactorCommands:refactor(refactor_type, context)
 		return
 	end
 
-	if not context then
-		context = vim.lsp.util.make_range_params(0)
-		context.context = {}
-		context.context.diagnostics = vim.lsp.diagnostic.get_line_diagnostics(0)
-	end
+	params = params or RefactorCommands.make_action_params()
+	local formatting_options = RefactorCommands.make_formatting_options()
+	local selections
 
-	local formatting_options = {
-		tabSize = vim.bo.tabstop,
-		insertSpaces = vim.bo.expandtab,
-	}
-
-	local buffer = vim.api.nvim_get_current_buf()
-
-	local selections = List:new()
-
-	if
-		context.range.start.character == context.range['end'].character
-		and context.range.start.line == context.range['end'].line
-	then
-		local selection =
-			self.jdtls_client:java_infer_selection(refactor_type, context, buffer)[1]
-
-		if refactor_type == 'extractField' then
-			if selection.params and vim.islist(selection.params) then
-				local initialize_in =
-					ui.select('Initialize the field in', selection.params)
-
-				if not initialize_in then
-					return
-				end
-
-				selections:push(initialize_in)
-			end
-		end
-
-		selections:push(selection)
-		vim.print(selections)
+	if selections_needed_refactoring_commands then
+		selections = self:get_selections(refactor_type, params)
 	end
 
 	local edit = self.jdtls_client:java_get_refactor_edit(
 		refactor_type,
-		context,
+		params,
 		formatting_options,
 		selections,
-		buffer
+		vim.api.nvim_get_current_buf()
 	)
 
 	if not edit then
@@ -100,6 +78,9 @@ function RefactorCommands:refactor(refactor_type, context)
 	)
 end
 
+---@private
+---@param command_name string
+---@param arguments any
 function RefactorCommands.run_lsp_client_command(command_name, arguments)
 	local command = vim.lsp.commands[command_name]
 
@@ -109,6 +90,68 @@ function RefactorCommands.run_lsp_client_command(command_name, arguments)
 	end
 
 	command(arguments)
+end
+
+---Returns action params
+---@private
+---@return lsp.CodeActionParams
+function RefactorCommands.make_action_params()
+	---@type lsp.CodeActionParams
+	local params = vim.lsp.util.make_range_params(0)
+
+	---@type lsp.CodeActionContext
+	local context = { diagnostics = vim.lsp.diagnostic.get_line_diagnostics(0) }
+
+	params.context = context
+
+	return params
+end
+
+---@private
+---@return lsp.FormattingOptions
+function RefactorCommands.make_formatting_options()
+	return {
+		tabSize = vim.bo.tabstop,
+		insertSpaces = vim.bo.expandtab,
+	}
+end
+
+---@private
+---@param refactor_type jdtls.CodeActionCommand
+---@param params lsp.CodeActionParams
+---@return jdtls.SelectionInfo[]
+function RefactorCommands:get_selections(refactor_type, params)
+	local selections = List:new()
+	local buffer = vim.api.nvim_get_current_buf()
+
+	if
+		params.range.start.character == params.range['end'].character
+		and params.range.start.line == params.range['end'].line
+	then
+		local selection_res =
+			self.jdtls_client:java_infer_selection(refactor_type, params, buffer)
+
+		if not selection_res then
+			return selections
+		end
+
+		local selection = selection_res[1]
+
+		if selection.params and vim.islist(selection.params) then
+			local initialize_in =
+				ui.select('Initialize the field in', selection.params)
+
+			if not initialize_in then
+				return selections
+			end
+
+			selections:push(initialize_in)
+		end
+
+		selections:push(selection)
+	end
+
+	return selections
 end
 
 return RefactorCommands

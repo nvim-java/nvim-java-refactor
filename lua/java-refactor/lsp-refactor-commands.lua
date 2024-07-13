@@ -36,22 +36,15 @@ local M = {
 		---comment
 		---@param command lsp.Command
 		---@param params java-refactor.ApplyRefactoringCommandParams
-		---@param command_info lsp.LSPAny
-		['java.action.applyRefactoringCommand'] = function(
-			command,
-			params,
-			command_info
-		)
+		['java.action.applyRefactoringCommand'] = function(command, params)
 			runner(function()
-					vim.print('params', params)
-					vim.print('command_info', command_info)
 					local refactor_type = command.arguments[1] --[[@as jdtls.CodeActionCommand]]
 
 					local client = vim.lsp.get_client_by_id(params.client_id)
 
 					---@type java-refactor.RefactorCommands
 					local refactor_commands = RefactorCommands(client)
-					refactor_commands:refactor(refactor_type, params.params, command_info)
+					refactor_commands:refactor(refactor_type, params.params)
 				end)
 				.catch(get_error_handler('Failed to run refactoring command'))
 				.run()

@@ -57,7 +57,7 @@ function RefactorCommands:refactor(refactor_type, params)
 		selections = self:get_selections(refactor_type, params)
 	end
 
-	local edit = self.jdtls_client:java_get_refactor_edit(
+	local changes = self.jdtls_client:java_get_refactor_edit(
 		refactor_type,
 		params,
 		formatting_options,
@@ -65,16 +65,16 @@ function RefactorCommands:refactor(refactor_type, params)
 		vim.api.nvim_get_current_buf()
 	)
 
-	if not edit then
+	if not changes then
 		notify.warn('No edits suggested for action')
 		return
 	end
 
-	vim.lsp.util.apply_workspace_edit(edit.edit, 'utf-8')
+	vim.lsp.util.apply_workspace_edit(changes.edit, 'utf-8')
 
 	RefactorCommands.run_lsp_client_command(
-		edit.command.command,
-		edit.command.arguments
+		changes.command.command,
+		changes.command.arguments
 	)
 end
 

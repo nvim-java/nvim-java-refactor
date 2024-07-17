@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/nvim-java/nvim-java-refactor/compare/v1.4.0...v1.5.0) (2024-07-17)
+
+
+### Features
+
+* add moveType and moveStaticMember code actions ([35d8a83](https://github.com/nvim-java/nvim-java-refactor/commit/35d8a8341cc1d0ca6febed5910adb8f3d8ad26fd))
+
 ## [1.4.0](https://github.com/nvim-java/nvim-java-refactor/compare/v1.3.0...v1.4.0) (2024-07-13)
 
 

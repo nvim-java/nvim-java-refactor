@@ -13,34 +13,19 @@ local refactor_edit_request_needed_actions = {
 	'extractVariableAllOccurrence',
 }
 
-local selections_needed_refactoring_commands = {
-	'convertVariableToField',
-	'extractConstant',
-	'extractField',
-	'extractMethod',
-	'extractVariable',
-	'extractVariableAllOccurrence',
-}
-
-local available_actions = {
+local available_actions = List:new({
 	'assignField',
 	'assignVariable',
-	-- 'changeSignature',
 	'convertAnonymousClassToNestedCommand',
-	'convertVariableToField',
-	'extractConstant',
-	'extractField',
-	-- 'extractInterface',
-	'extractMethod',
-	'extractVariable',
-	'extractVariableAllOccurrence',
 	'introduceParameter',
 	'invertVariable',
-	'moveFile',
+	-- 'moveFile',
 	'moveInstanceMethod',
 	'moveStaticMember',
 	'moveType',
-}
+	-- 'changeSignature',
+	-- 'extractInterface',
+}):concat(refactor_edit_request_needed_actions)
 
 ---@class java-refactor.RefactorCommands
 ---@field jdtls_client java-core.JdtlsClient
@@ -67,9 +52,7 @@ function RefactorCommands:refactor(action_name, action_context, action_info)
 		local formatting_options = RefactorCommands.make_formatting_options()
 		local selections
 
-		if
-			vim.tbl_contains(selections_needed_refactoring_commands, action_name)
-		then
+		if vim.tbl_contains(refactor_edit_request_needed_actions, action_name) then
 			selections = self:get_selections(action_name, action_context)
 		end
 
@@ -81,17 +64,9 @@ function RefactorCommands:refactor(action_name, action_context, action_info)
 			vim.api.nvim_get_current_buf()
 		)
 
-		if not changes then
-			notify.warn('No edits suggested for action')
-			return
-		end
-
-		vim.lsp.util.apply_workspace_edit(changes.edit, 'utf-8')
-
-		RefactorCommands.run_lsp_client_command(
-			changes.command.command,
-			changes.command.arguments
-		)
+		RefactorCommands.perform_refactor_edit(changes)
+	elseif action_name == 'moveFile' then
+		self:move_file(action_info --[[@as jdtls.CodeActionMoveTypeCommandInfo]])
 	elseif action_name == 'moveType' then
 		self:move_type(
 			action_context,
@@ -102,7 +77,111 @@ function RefactorCommands:refactor(action_name, action_context, action_info)
 			action_context,
 			action_info --[[@as jdtls.CodeActionMoveTypeCommandInfo]]
 		)
+	elseif action_name == 'moveInstanceMethod' then
+		self:move_instance_method(
+			action_context,
+			action_info --[[@as jdtls.CodeActionMoveTypeCommandInfo]]
+		)
 	end
+end
+
+---@param action_info jdtls.CodeActionMoveTypeCommandInfo
+function RefactorCommands:move_file(action_info)
+	if not action_info or not action_info.uri then
+		return
+	end
+
+	local move_des = self.jdtls_client:get_move_destination({
+		moveKind = 'moveResource',
+		sourceUris = { action_info.uri },
+		params = nil,
+	})
+
+	vim.print(move_des)
+
+	if
+		not move_des
+		or not move_des.destinations
+		or #move_des.destinations < 1
+	then
+		notify.error(
+			'Cannot find available Java packages to move the selected files to.'
+		)
+		return
+	end
+
+	---@type jdtls.ResourceMoveDestination[]
+	local destinations = move_des.destinations
+
+	local selected_destination = ui.select(
+		'Choose the target package',
+		destinations,
+		function(destination)
+			return destination.displayName .. ' ' .. destination.path
+		end
+	)
+
+	if not selected_destination then
+		return
+	end
+
+	local changes = self.jdtls_client:java_move({
+		moveKind = 'moveResource',
+		sourceUris = { action_info.uri },
+		params = nil,
+		destination = selected_destination,
+	})
+
+	RefactorCommands.perform_refactor_edit(changes)
+end
+
+---@param action_context lsp.CodeActionParams
+---@param action_info jdtls.CodeActionMoveTypeCommandInfo
+function RefactorCommands:move_instance_method(action_context, action_info)
+	local move_des = self.jdtls_client:get_move_destination({
+		moveKind = 'moveInstanceMethod',
+		sourceUris = { action_context.textDocument.uri },
+		params = action_context,
+	})
+
+	if move_des and move_des.errorMessage then
+		notify.error(move_des.errorMessage)
+		return
+	end
+
+	if
+		not move_des
+		or not move_des.destinations
+		or #move_des.destinations < 1
+	then
+		notify.error(
+			'Cannot find possible class targets to move the selected method to.'
+		)
+		return
+	end
+
+	---@type jdtls.InstanceMethodMoveDestination[]
+	local destinations = move_des.destinations
+
+	local method_name = action_info and action_info.displayName or ''
+
+	local selected_destination = ui.select(
+		string.format(
+			'Select the new class for the instance method %s',
+			method_name
+		),
+		destinations,
+		function(destination)
+			return destination.type .. ' ' .. destination.name
+		end,
+		{ prompt_single = true }
+	)
+
+	if not selected_destination then
+		return
+	end
+
+	self:perform_move('moveInstanceMethod', action_context, selected_destination)
 end
 
 ---@param action_context lsp.CodeActionParams
@@ -139,21 +218,7 @@ function RefactorCommands:move_static_member(action_context, action_info)
 		return
 	end
 
-	local changes = self.jdtls_client:java_move({
-		moveKind = 'moveStaticMember',
-		sourceUris = { action_context.textDocument.uri },
-		params = action_context,
-		destination = selected_class,
-	})
-
-	vim.lsp.util.apply_workspace_edit(changes.edit, 'utf-8')
-
-	if changes.command then
-		RefactorCommands.run_lsp_client_command(
-			changes.command.command,
-			changes.command.arguments
-		)
-	end
+	self:perform_move('moveStaticMember', action_context, selected_class)
 end
 
 ---@param action_context lsp.CodeActionParams
@@ -185,15 +250,8 @@ function RefactorCommands:move_type(action_context, action_info)
 		return
 	end
 
-	---@type jdtls.RefactorWorkspaceEdit
-	local changes
-
 	if selected_destination_kind == 'newFile' then
-		changes = self.jdtls_client:java_move({
-			moveKind = 'moveTypeToNewFile',
-			sourceUris = { action_context.textDocument.uri },
-			params = action_context,
-		})
+		self:perform_move('moveTypeToNewFile', action_context)
 	else
 		local exclude = List:new()
 
@@ -217,12 +275,29 @@ function RefactorCommands:move_type(action_context, action_info)
 			return
 		end
 
-		changes = self.jdtls_client:java_move({
-			moveKind = 'moveStaticMember',
-			sourceUris = { action_context.textDocument.uri },
-			params = action_context,
-			destination = selected_class,
-		})
+		self:perform_move('moveStaticMember', action_context, selected_class)
+	end
+end
+
+---@param move_kind string
+---@param action_context lsp.CodeActionParams
+---@param destination? jdtls.InstanceMethodMoveDestination | jdtls.ResourceMoveDestination | lsp.SymbolInformation
+function RefactorCommands:perform_move(move_kind, action_context, destination)
+	local changes = self.jdtls_client:java_move({
+		moveKind = move_kind,
+		sourceUris = { action_context.textDocument.uri },
+		params = action_context,
+		destination = destination,
+	})
+
+	RefactorCommands.perform_refactor_edit(changes)
+end
+
+---@param changes jdtls.RefactorWorkspaceEdit
+function RefactorCommands.perform_refactor_edit(changes)
+	if not changes then
+		notify.warn('No edits suggested for the code action')
+		return
 	end
 
 	vim.lsp.util.apply_workspace_edit(changes.edit, 'utf-8')
@@ -325,5 +400,6 @@ end
 ---@field memberType number
 ---@field projectName string
 ---@field supportedDestinationKinds string[]
+---@field uri? string
 
 return RefactorCommands

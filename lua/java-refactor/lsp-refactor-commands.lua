@@ -3,7 +3,6 @@ local get_error_handler = require('java-refactor.utils.error_handler')
 local RefactorCommands = require('java-refactor.refactor-commands')
 
 local M = {
-
 	commands = {
 		---@class java-refactor.RenameAction
 		---@field length number
@@ -38,13 +37,15 @@ local M = {
 		---@param params java-refactor.ApplyRefactoringCommandParams
 		['java.action.applyRefactoringCommand'] = function(command, params)
 			runner(function()
-					local refactor_type = command.arguments[1] --[[@as jdtls.CodeActionCommand]]
+					local action_name = command.arguments[1] --[[@as jdtls.CodeActionCommand]]
+					local action_context = command.arguments[2] --[[@as lsp.CodeActionParams]]
+					local action_info = command.arguments[3] --[[@as lsp.LSPAny]]
 
 					local client = vim.lsp.get_client_by_id(params.client_id)
 
 					---@type java-refactor.RefactorCommands
 					local refactor_commands = RefactorCommands(client)
-					refactor_commands:refactor(refactor_type, params.params)
+					refactor_commands:refactor(action_name, action_context, action_info)
 				end)
 				.catch(get_error_handler('Failed to run refactoring command'))
 				.run()
@@ -73,58 +74,3 @@ id = vim.api.nvim_create_autocmd('LspAttach', {
 ---@field method string
 ---@field params lsp.CodeActionParams
 ---@field version number
-
---[[
-{
-		arguments = {
-			'extractField',
-			{
-				context = {
-					diagnostics = {},
-					triggerKind = 1,
-				},
-				range = {
-					['end'] = {
-						character = 9,
-						line = 9,
-					},
-					start = {
-						character = 9,
-						line = 9,
-					},
-				},
-				textDocument = {
-					uri = 'file:///home/s1n7ax/Workspace/demo/src/main/java/com/example/demo/DemoApplication.java',
-				},
-			},
-		},
-		command = 'java.action.applyRefactoringCommand',
-		title = 'Extract to field',
-	})
-
-{
-  bufnr = 3,
-  client_id = 2,
-  method = "textDocument/codeAction",
-  params = {
-    context = {
-      diagnostics = {},
-      triggerKind = 1
-    },
-    range = {
-      ["end"] = {
-        character = 9,
-        line = 9
-      },
-      start = {
-        character = 9,
-        line = 9
-      }
-    },
-    textDocument = {
-      uri = "file:///home/s1n7ax/Workspace/demo/src/main/java/com/example/demo/DemoApplication.java"
-    }
-  },
-  version = 4
-}
-]]

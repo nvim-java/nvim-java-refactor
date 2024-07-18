@@ -300,6 +300,10 @@ function RefactorCommands.perform_refactor_edit(changes)
 		return
 	end
 
+	if changes.errorMessage then
+		notify.error(changes.errorMessage)
+		return
+	end
 	vim.lsp.util.apply_workspace_edit(changes.edit, 'utf-8')
 
 	if changes.command then

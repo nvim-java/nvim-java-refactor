@@ -1,7 +1,7 @@
 local ui = require('java.utils.ui')
 local class = require('java-core.utils.class')
 local JdtlsClient = require('java-core.ls.clients.jdtls-client')
-local RefactorCommands = require('java-refactor.refactor-commands')
+local RefactorCommands = require('java-refactor.refactor')
 local notify = require('java-core.utils.notify')
 local List = require('java-core.utils.list')
 

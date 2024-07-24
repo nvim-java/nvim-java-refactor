@@ -27,12 +27,12 @@ local available_actions = List:new({
 	-- 'extractInterface',
 }):concat(refactor_edit_request_needed_actions)
 
----@class java-refactor.RefactorCommands
+---@class java-refactor.Refactor
 ---@field jdtls_client java-core.JdtlsClient
-local RefactorCommands = class()
+local Refactor = class()
 
 ---@param client vim.lsp.Client
-function RefactorCommands:_init(client)
+function Refactor:_init(client)
 	self.jdtls_client = JdtlsClient(client)
 end
 
@@ -40,7 +40,7 @@ end
 ---@param action_name jdtls.CodeActionCommand
 ---@param action_context lsp.CodeActionParams
 ---@param action_info lsp.LSPAny
-function RefactorCommands:refactor(action_name, action_context, action_info)
+function Refactor:refactor(action_name, action_context, action_info)
 	if not vim.tbl_contains(available_actions, action_name) then
 		notify.error(
 			string.format('Refactoring command "%s" is not supported', action_name)
@@ -49,7 +49,7 @@ function RefactorCommands:refactor(action_name, action_context, action_info)
 	end
 
 	if vim.tbl_contains(refactor_edit_request_needed_actions, action_name) then
-		local formatting_options = RefactorCommands.make_formatting_options()
+		local formatting_options = Refactor.make_formatting_options()
 		local selections
 
 		if vim.tbl_contains(refactor_edit_request_needed_actions, action_name) then
@@ -64,7 +64,7 @@ function RefactorCommands:refactor(action_name, action_context, action_info)
 			vim.api.nvim_get_current_buf()
 		)
 
-		RefactorCommands.perform_refactor_edit(changes)
+		Refactor.perform_refactor_edit(changes)
 	elseif action_name == 'moveFile' then
 		self:move_file(action_info --[[@as jdtls.CodeActionMoveTypeCommandInfo]])
 	elseif action_name == 'moveType' then
@@ -87,7 +87,7 @@ end
 
 ---@private
 ---@param action_info jdtls.CodeActionMoveTypeCommandInfo
-function RefactorCommands:move_file(action_info)
+function Refactor:move_file(action_info)
 	if not action_info or not action_info.uri then
 		return
 	end
@@ -133,13 +133,13 @@ function RefactorCommands:move_file(action_info)
 		destination = selected_destination,
 	})
 
-	RefactorCommands.perform_refactor_edit(changes)
+	Refactor.perform_refactor_edit(changes)
 end
 
 ---@private
 ---@param action_context lsp.CodeActionParams
 ---@param action_info jdtls.CodeActionMoveTypeCommandInfo
-function RefactorCommands:move_instance_method(action_context, action_info)
+function Refactor:move_instance_method(action_context, action_info)
 	local move_des = self.jdtls_client:get_move_destination({
 		moveKind = 'moveInstanceMethod',
 		sourceUris = { action_context.textDocument.uri },
@@ -189,7 +189,7 @@ end
 ---@private
 ---@param action_context lsp.CodeActionParams
 ---@param action_info jdtls.CodeActionMoveTypeCommandInfo
-function RefactorCommands:move_static_member(action_context, action_info)
+function Refactor:move_static_member(action_context, action_info)
 	local exclude = List:new()
 
 	if action_info.enclosingTypeName then
@@ -227,7 +227,7 @@ end
 ---@private
 ---@param action_context lsp.CodeActionParams
 ---@param action_info jdtls.CodeActionMoveTypeCommandInfo
-function RefactorCommands:move_type(action_context, action_info)
+function Refactor:move_type(action_context, action_info)
 	if not action_info or not action_info.supportedDestinationKinds then
 		return
 	end
@@ -287,7 +287,7 @@ end
 ---@param move_kind string
 ---@param action_context lsp.CodeActionParams
 ---@param destination? jdtls.InstanceMethodMoveDestination | jdtls.ResourceMoveDestination | lsp.SymbolInformation
-function RefactorCommands:perform_move(move_kind, action_context, destination)
+function Refactor:perform_move(move_kind, action_context, destination)
 	local changes = self.jdtls_client:java_move({
 		moveKind = move_kind,
 		sourceUris = { action_context.textDocument.uri },
@@ -295,12 +295,12 @@ function RefactorCommands:perform_move(move_kind, action_context, destination)
 		destination = destination,
 	})
 
-	RefactorCommands.perform_refactor_edit(changes)
+	Refactor.perform_refactor_edit(changes)
 end
 
 ---@private
 ---@param changes jdtls.RefactorWorkspaceEdit
-function RefactorCommands.perform_refactor_edit(changes)
+function Refactor.perform_refactor_edit(changes)
 	if not changes then
 		notify.warn('No edits suggested for the code action')
 		return
@@ -313,7 +313,7 @@ function RefactorCommands.perform_refactor_edit(changes)
 	vim.lsp.util.apply_workspace_edit(changes.edit, 'utf-8')
 
 	if changes.command then
-		RefactorCommands.run_lsp_client_command(
+		Refactor.run_lsp_client_command(
 			changes.command.command,
 			changes.command.arguments
 		)
@@ -324,7 +324,7 @@ end
 ---@param prompt string
 ---@param project_name string
 ---@param exclude string[]
-function RefactorCommands:select_target_class(prompt, project_name, exclude)
+function Refactor:select_target_class(prompt, project_name, exclude)
 	local classes = self.jdtls_client:java_search_symbols({
 		query = '*',
 		projectName = project_name,
@@ -347,7 +347,7 @@ end
 ---@private
 ---@param command_name string
 ---@param arguments any
-function RefactorCommands.run_lsp_client_command(command_name, arguments)
+function Refactor.run_lsp_client_command(command_name, arguments)
 	local command = vim.lsp.commands[command_name]
 
 	if not command then
@@ -360,7 +360,7 @@ end
 
 ---@private
 ---@return lsp.FormattingOptions
-function RefactorCommands.make_formatting_options()
+function Refactor.make_formatting_options()
 	return {
 		tabSize = vim.bo.tabstop,
 		insertSpaces = vim.bo.expandtab,
@@ -371,7 +371,7 @@ end
 ---@param refactor_type jdtls.CodeActionCommand
 ---@param params lsp.CodeActionParams
 ---@return jdtls.SelectionInfo[]
-function RefactorCommands:get_selections(refactor_type, params)
+function Refactor:get_selections(refactor_type, params)
 	local selections = List:new()
 	local buffer = vim.api.nvim_get_current_buf()
 
@@ -413,4 +413,4 @@ end
 ---@field supportedDestinationKinds string[]
 ---@field uri? string
 
-return RefactorCommands
+return Refactor

@@ -23,7 +23,7 @@ end
 ---@field uri string
 
 ---@param params java-refactor.RenameAction[]
-function Action:rename(params)
+function Action.rename(params)
 	for _, rename in ipairs(params) do
 		local buffer = vim.uri_to_bufnr(rename.uri)
 

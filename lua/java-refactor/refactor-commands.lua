@@ -85,6 +85,7 @@ function RefactorCommands:refactor(action_name, action_context, action_info)
 	end
 end
 
+---@private
 ---@param action_info jdtls.CodeActionMoveTypeCommandInfo
 function RefactorCommands:move_file(action_info)
 	if not action_info or not action_info.uri then
@@ -135,6 +136,7 @@ function RefactorCommands:move_file(action_info)
 	RefactorCommands.perform_refactor_edit(changes)
 end
 
+---@private
 ---@param action_context lsp.CodeActionParams
 ---@param action_info jdtls.CodeActionMoveTypeCommandInfo
 function RefactorCommands:move_instance_method(action_context, action_info)
@@ -184,6 +186,7 @@ function RefactorCommands:move_instance_method(action_context, action_info)
 	self:perform_move('moveInstanceMethod', action_context, selected_destination)
 end
 
+---@private
 ---@param action_context lsp.CodeActionParams
 ---@param action_info jdtls.CodeActionMoveTypeCommandInfo
 function RefactorCommands:move_static_member(action_context, action_info)
@@ -221,6 +224,7 @@ function RefactorCommands:move_static_member(action_context, action_info)
 	self:perform_move('moveStaticMember', action_context, selected_class)
 end
 
+---@private
 ---@param action_context lsp.CodeActionParams
 ---@param action_info jdtls.CodeActionMoveTypeCommandInfo
 function RefactorCommands:move_type(action_context, action_info)
@@ -279,6 +283,7 @@ function RefactorCommands:move_type(action_context, action_info)
 	end
 end
 
+---@private
 ---@param move_kind string
 ---@param action_context lsp.CodeActionParams
 ---@param destination? jdtls.InstanceMethodMoveDestination | jdtls.ResourceMoveDestination | lsp.SymbolInformation
@@ -293,6 +298,7 @@ function RefactorCommands:perform_move(move_kind, action_context, destination)
 	RefactorCommands.perform_refactor_edit(changes)
 end
 
+---@private
 ---@param changes jdtls.RefactorWorkspaceEdit
 function RefactorCommands.perform_refactor_edit(changes)
 	if not changes then
@@ -314,6 +320,7 @@ function RefactorCommands.perform_refactor_edit(changes)
 	end
 end
 
+---@private
 ---@param prompt string
 ---@param project_name string
 ---@param exclude string[]

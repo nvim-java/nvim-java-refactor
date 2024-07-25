@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.6.0](https://github.com/nvim-java/nvim-java-refactor/compare/v1.5.0...v1.6.0) (2024-07-25)
+
+
+### Features
+
+* add support for move refactoring code commands ([731a6f5](https://github.com/nvim-java/nvim-java-refactor/commit/731a6f50e656ae6dfc11d0517650ac179a669e11))
+* move all client commands to java-refactor ([#14](https://github.com/nvim-java/nvim-java-refactor/issues/14)) ([2c239b8](https://github.com/nvim-java/nvim-java-refactor/commit/2c239b84b84986808c9f351e959b2e9422bbc890))
+
+
+### Bug Fixes
+
+* throws an error when there is refactor edit error ([1ad4911](https://github.com/nvim-java/nvim-java-refactor/commit/1ad49115898c1a03af23ec5058c1df6268b712a9))
+
 ## [1.5.0](https://github.com/nvim-java/nvim-java-refactor/compare/v1.4.0...v1.5.0) (2024-07-17)
 
 

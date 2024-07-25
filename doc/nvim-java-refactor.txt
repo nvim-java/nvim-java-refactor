@@ -1,4 +1,4 @@
-*nvim-java-refactor.txt*      For Neovim >= 0.9.4     Last change: 2024 May 02
+*nvim-java-refactor.txt*     For Neovim >= 0.9.4     Last change: 2024 July 25
 
 ==============================================================================
 Table of Contents                       *nvim-java-refactor-table-of-contents*

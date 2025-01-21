@@ -270,4 +270,33 @@ end
 ---@field params lsp.CodeActionParams
 ---@field version number
 
+---@param params nvim.CodeActionParamsResponse
+function Action:override_methods_prompt(params)
+	local status = self.jdtls:list_overridable_methods(params.params)
+
+	if not status or not status.methods or #status.methods < 1 then
+		notify.warn('No methods to override.')
+		return
+	end
+
+	local selected_methods = ui.multi_select(
+		'Select methods to override.',
+		status.methods,
+		function(method)
+			return string.format(
+				'%s(%s)',
+				method.name,
+				table.concat(method.parameters, ', ')
+			)
+		end
+	)
+
+	if not selected_methods or #selected_methods < 1 then
+		return
+	end
+
+	local edit =
+		self.jdtls:add_overridable_methods(params.params, selected_methods)
+	vim.lsp.util.apply_workspace_edit(edit, 'utf-8')
+end
 return Action

@@ -57,6 +57,14 @@ local M = {
 		end)
 	end,
 
+	---@param params nvim.CodeActionParamsResponse
+	[ClientCommand.OVERRIDE_METHODS_PROMPT] = function(_, params)
+		run('Failed to get overridable methods', function(action)
+			action:override_methods_prompt(params)
+			require('java-core.utils.notify').info('Successfully built the workspace')
+		end)
+	end,
+
 	---@param is_full_build boolean
 	[ClientCommand.COMPILE_WORKSPACE] = function(is_full_build)
 		run('Failed to build workspace', function(action)

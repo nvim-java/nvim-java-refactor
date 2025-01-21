@@ -98,8 +98,6 @@ function Refactor:move_file(action_info)
 		params = nil,
 	})
 
-	vim.print(move_des)
-
 	if
 		not move_des
 		or not move_des.destinations

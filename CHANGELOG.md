@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://github.com/nvim-java/nvim-java-refactor/compare/v1.6.0...v1.7.0) (2025-01-21)
+
+
+### Features
+
+* add handler for overrideMethodsPrompt action ([#16](https://github.com/nvim-java/nvim-java-refactor/issues/16)) ([2c281a1](https://github.com/nvim-java/nvim-java-refactor/commit/2c281a110fd616ce10c44963e63e13bdf9e638d7))
+
 ## [1.6.0](https://github.com/nvim-java/nvim-java-refactor/compare/v1.5.0...v1.6.0) (2024-07-25)
 
 

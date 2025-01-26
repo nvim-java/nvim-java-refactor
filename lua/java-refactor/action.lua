@@ -301,7 +301,7 @@ function Action:override_methods_prompt(params)
 end
 
 ---@param selections jdtls.ImportSelection[]
-function Action:choose_imports(selections)
+function Action.choose_imports(selections)
 	local selected_candidates = {}
 
 	for _, selection in ipairs(selections) do

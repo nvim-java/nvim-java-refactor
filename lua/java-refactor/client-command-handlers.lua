@@ -73,7 +73,7 @@ local M = {
 
 		local selections = params[2]
 		local ok, result = pcall(function()
-			return action:choose_imports(selections)
+			return action.choose_imports(selections)
 		end)
 
 		if not ok then

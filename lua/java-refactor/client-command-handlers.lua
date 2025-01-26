@@ -65,6 +65,25 @@ local M = {
 		end)
 	end,
 
+	---@param params [string, jdtls.ImportSelection[], boolean]
+	[ClientCommand.CHOOSE_IMPORTS] = function(params)
+		local get_error_handler = require('java-refactor.utils.error_handler')
+		local instance = require('java-refactor.utils.instance-factory')
+		local action = instance.get_action()
+
+		local selections = params[2]
+		local ok, result = pcall(function()
+			return action:choose_imports(selections)
+		end)
+
+		if not ok then
+			get_error_handler('Failed to choose imports')(result)
+			return
+		end
+
+		return result or {}
+	end,
+
 	---@param is_full_build boolean
 	[ClientCommand.COMPILE_WORKSPACE] = function(is_full_build)
 		run('Failed to build workspace', function(action)

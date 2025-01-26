@@ -299,4 +299,24 @@ function Action:override_methods_prompt(params)
 		self.jdtls:add_overridable_methods(params.params, selected_methods)
 	vim.lsp.util.apply_workspace_edit(edit, 'utf-8')
 end
+
+---@param selections jdtls.ImportSelection[]
+function Action:choose_imports(selections)
+	local selected_candidates = {}
+
+	for _, selection in ipairs(selections) do
+		local selected_candidate = ui.select_sync(
+			'Select methods to override.',
+			selection.candidates,
+			function(candidate, index)
+				return index .. ' ' .. candidate.fullyQualifiedName
+			end
+		)
+
+		table.insert(selected_candidates, selected_candidate)
+	end
+
+	return selected_candidates
+end
+
 return Action

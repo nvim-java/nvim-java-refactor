@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0](https://github.com/nvim-java/nvim-java-refactor/compare/v1.7.0...v1.8.0) (2025-01-26)
+
+
+### Features
+
+* add chooseImports action ([#19](https://github.com/nvim-java/nvim-java-refactor/issues/19)) ([5d15bd6](https://github.com/nvim-java/nvim-java-refactor/commit/5d15bd646f73073244e4f5da64905ba0b2b592e5))
+
 ## [1.7.0](https://github.com/nvim-java/nvim-java-refactor/compare/v1.6.0...v1.7.0) (2025-01-21)
 
 
